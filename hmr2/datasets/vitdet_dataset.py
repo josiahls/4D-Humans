@@ -36,6 +36,7 @@ class ViTDetDataset(torch.utils.data.Dataset):
         boxes = boxes.astype(np.float32)
         self.center = (boxes[:, 2:4] + boxes[:, 0:2]) / 2.0
         self.scale = (boxes[:, 2:4] - boxes[:, 0:2]) / 200.0
+        self.score = boxes[:,4]
         self.personid = np.arange(len(boxes), dtype=np.int32)
 
     def __len__(self) -> int:
@@ -84,5 +85,6 @@ class ViTDetDataset(torch.utils.data.Dataset):
         }
         item['box_center'] = self.center[idx].copy()
         item['box_size'] = bbox_size
+        item['box_score'] = self.score[idx]
         item['img_size'] = 1.0 * np.array([cvimg.shape[1], cvimg.shape[0]])
         return item

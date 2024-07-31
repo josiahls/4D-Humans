@@ -18,6 +18,9 @@ class SMPL(smplx.SMPLLayer):
         super(SMPL, self).__init__(*args, **kwargs)
         smpl_to_openpose = [24, 12, 17, 19, 21, 16, 18, 20, 0, 2, 5, 8, 1, 4,
                             7, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34]
+        
+        hand_joints = [22, 23]
+        self.register_buffer('hand_joints', torch.tensor(hand_joints, dtype=torch.long))
             
         if joint_regressor_extra is not None:
             self.register_buffer('joint_regressor_extra', torch.tensor(pickle.load(open(joint_regressor_extra, 'rb'), encoding='latin1'), dtype=torch.float32))
@@ -37,5 +40,9 @@ class SMPL(smplx.SMPLLayer):
         if hasattr(self, 'joint_regressor_extra'):
             extra_joints = vertices2joints(self.joint_regressor_extra, smpl_output.vertices)
             joints = torch.cat([joints, extra_joints], dim=1)
+        
+        # Results in [N_people, 46, 3] keypoints where the last 2 are the hand keypoints
+        joints = torch.cat([joints, smpl_output.joints[:, self.hand_joints, :]], dim=1)
+
         smpl_output.joints = joints
         return smpl_output
